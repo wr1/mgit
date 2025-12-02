@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "multig"
+name = "mgit"
 version = "0.1.0"
 description = "A lightweight CLI tool for painless daily development on projects that consist of many independent git repositories."
 authors = [{name = "Your Name", email = "your.email@example.com"}]
@@ -23,7 +23,7 @@ test = [
 ]
 
 [project.scripts]
-multig = "multig.cli:main"
+mgit = "mgit.cli:main"
 
 [tool.ruff]
 line-length = 88
