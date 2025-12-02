@@ -1,4 +1,4 @@
-# multig
+# mgit
 
 A lightweight, LLM-transparent CLI tool for painless daily development on projects that consist of many independent git repositories (a "monorepo in spirit, polyrepo in practice").
 
@@ -19,18 +19,18 @@ pip install -e .
 ## Usage
 
 ```bash
-uv run multig --help
+uv run mgit --help
 ```
 
 Or after installation:
 
 ```bash
-multig --help
+mgit --help
 ```
 
 ## Configuration
 
-Create a `.multigrc` YAML file in your project root.
+Create a `.mgitrc` YAML file in your project root.
 
 Example:
 
