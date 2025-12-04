@@ -96,25 +96,47 @@ def resolve_targets(
     explicit_files = set()
     all_repos = set(config.get("profiles", {}).get("all", []))
     magic_words = {"src", "tests", "examples", "pyproject"}
-    for target in targets:
+    i = 0
+    while i < len(targets):
+        target = targets[i]
         if target in config.get("profiles", {}):
             repos.update(config["profiles"][target])
         elif target in config.get("aliases", {}):
             repos.update(config["aliases"][target])
         elif target in magic_words:
-            # Magic: add specific dirs/files from all repos
-            for repo_name in all_repos:
-                repo_path = root / repo_name
-                if repo_path.exists():
-                    if target == "pyproject":
-                        pyproject = repo_path / "pyproject.toml"
-                        if pyproject.exists():
-                            explicit_files.add(pyproject)
-                    else:
-                        # Add all .py in target dir
-                        target_dir = repo_path / target
-                        if target_dir.exists():
-                            explicit_files.update(target_dir.rglob("*.py"))
+            # Collect following non-magic terms
+            following = []
+            j = i + 1
+            while j < len(targets) and targets[j] not in magic_words and targets[j] not in config.get("profiles", {}) and targets[j] not in config.get("aliases", {}):
+                following.append(targets[j])
+                j += 1
+            if following:
+                # Apply magic to following repos
+                for repo_name in following:
+                    repo_path = root / repo_name
+                    if repo_path.exists():
+                        if target == "pyproject":
+                            pyproject = repo_path / "pyproject.toml"
+                            if pyproject.exists():
+                                explicit_files.add(pyproject)
+                        else:
+                            target_dir = repo_path / target
+                            if target_dir.exists():
+                                explicit_files.update(target_dir.rglob("*.py"))
+            else:
+                # Apply to all repos
+                for repo_name in all_repos:
+                    repo_path = root / repo_name
+                    if repo_path.exists():
+                        if target == "pyproject":
+                            pyproject = repo_path / "pyproject.toml"
+                            if pyproject.exists():
+                                explicit_files.add(pyproject)
+                        else:
+                            target_dir = repo_path / target
+                            if target_dir.exists():
+                                explicit_files.update(target_dir.rglob("*.py"))
+            i = j - 1
         elif "*" in target:
             # Glob pattern
             for repo_name in all_repos:
@@ -128,6 +150,7 @@ def resolve_targets(
                 repos.add(target)
         else:
             repos.add(target)
+        i += 1
     return repos, explicit_files
 
 

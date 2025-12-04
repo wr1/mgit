@@ -9,13 +9,13 @@ from .core import (
     branch,
     commit_repos,
     foreach,
-    prep,
     push_repos,
     run_tests,
     status,
     sync_repos,
     tag_repos,
 )
+from .prep import prep
 
 
 def main() -> None:

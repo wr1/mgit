@@ -22,7 +22,7 @@ def test_run_command():
         mock_run.return_value = MagicMock(returncode=0, stdout="output", stderr="")
         result = run_command(["echo", "hello"])
         mock_run.assert_called_once_with(
-            ["echo", "hello"], cwd=None, capture_output=True, text=True,
+            ["echo", "hello"], check=False, cwd=None, capture_output=True, text=True,
         )
         assert result.returncode == 0
 
@@ -45,8 +45,9 @@ def test_fold_files():
     """Test fold_files."""
     files = [Path("/tmp/file1.py")]
     output = Path("/tmp/output.json")
-    output.read_text = MagicMock(return_value="content")
-    with patch("mgit.utils.pyperclip.copy") as mock_copy:
+    with patch("mgit.utils.pyperclip.copy") as mock_copy, patch(
+        "pathlib.Path.read_text", return_value="content",
+    ) as mock_read:
         fold_files(files, output)
         mock_copy.assert_called_once_with("content")
 
@@ -59,9 +60,9 @@ def test_get_git_repos():
     mock_git = MagicMock()
     mock_git.exists.return_value = True
     mock_repo.__truediv__ = MagicMock(return_value=mock_git)
-    root.iterdir = MagicMock(return_value=[mock_repo])
-    repos = get_git_repos(root)
-    assert len(repos) == 1
+    with patch("pathlib.Path.iterdir", return_value=[mock_repo]) as mock_iterdir:
+        repos = get_git_repos(root)
+        assert len(repos) == 1
 
 
 def test_extract_imports():

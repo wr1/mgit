@@ -3,21 +3,17 @@
 from pathlib import Path
 from unittest.mock import patch
 
-from mgit.core import prep
+from mgit.prep import prep
 
 
 def test_prep():
-    """Test that prep calls fold_files without NameError."""
+    """Test that prep runs and copies to clipboard."""
     root = Path("/tmp")
-    target = "test"
-    with patch("mgit.core.load_config") as mock_load, patch(
-        "mgit.core.get_repos_from_config",
-    ) as mock_get, patch("mgit.core.get_repo_paths") as mock_paths, patch(
-        "mgit.core.fold_files",
-    ) as mock_fold:
+    targets = ["test"]
+    with patch("mgit.utils.pyperclip.copy") as mock_copy, patch("mgit.prep.load_config") as mock_load, patch(
+        "mgit.utils.resolve_targets",
+    ) as mock_resolve:
         mock_load.return_value = {"profiles": {"all": ["repo1"]}}
-        mock_get.return_value = ["repo1"]
-        mock_paths.return_value = [Path("/tmp/repo1")]
-        # Should not raise NameError
-        prep(root, target)
-        mock_fold.assert_called_once()
+        mock_resolve.return_value = ({"repo1"}, set())
+        prep(root, targets)
+        assert mock_copy.called

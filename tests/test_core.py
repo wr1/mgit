@@ -7,7 +7,6 @@ from mgit.core import (
     branch,
     commit_repos,
     foreach,
-    prep,
     push_repos,
     run_tests,
     status,
@@ -16,55 +15,24 @@ from mgit.core import (
 )
 
 
-def test_prep():
-    """Test that prep calls fold_files without NameError."""
-    root = Path("/tmp")
-    target = "test"
-    with patch("mgit.core.load_config") as mock_load, patch(
-        "mgit.core.get_repos_from_config",
-    ) as mock_get, patch("mgit.core.get_repo_paths") as mock_paths, patch(
-        "mgit.core.fold_files",
-    ) as mock_fold:
-        mock_load.return_value = {"profiles": {"all": ["repo1"]}}
-        mock_get.return_value = ["repo1"]
-        mock_paths.return_value = [Path("/tmp/repo1")]
-        # Should not raise NameError
-        prep(root, target)
-        mock_fold.assert_called_once()
-
-
-def test_prep_with_src():
-    """Test prep with src in targets."""
-    root = Path("/tmp")
-    targets = ["src", "repo1"]
-    with patch("mgit.core.load_config") as mock_load, patch(
-        "mgit.core.resolve_targets",
-    ) as mock_resolve, patch("mgit.core.fold_files") as mock_fold:
-        mock_load.return_value = {"profiles": {"all": ["repo1"]}}
-        mock_resolve.return_value = ({"repo1"}, set())
-        prep(root, targets)
-        mock_fold.assert_called_once()
-        # Since src in targets, src_mode should be True, but since mocked, can't check scanning
-
-
 def test_branch_create():
     """Test creating a new branch across repos."""
     root = Path("/tmp")
     name = "feature/new"
     with patch("mgit.core.load_config") as mock_load, patch(
         "mgit.core.get_repo_paths",
-    ) as mock_paths, patch("mgit.core.run_command") as mock_run:
+    ) as mock_paths, patch("subprocess.run") as mock_run:
         mock_load.return_value = {"profiles": {"all": ["repo1", "repo2"]}}
         mock_paths.return_value = [Path("/tmp/repo1"), Path("/tmp/repo2")]
-        mock_run.return_value = MagicMock(returncode=0)
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         branch(root, name, delete=False, sync=False, profile=None)
         # Should call checkout -b for each repo
         assert mock_run.call_count == 2
         mock_run.assert_any_call(
-            ["git", "checkout", "-b", name], cwd=Path("/tmp/repo1"),
+            ["git", "checkout", "-b", name], check=False, cwd=Path("/tmp/repo1"), capture_output=True, text=True,
         )
         mock_run.assert_any_call(
-            ["git", "checkout", "-b", name], cwd=Path("/tmp/repo2"),
+            ["git", "checkout", "-b", name], check=False, cwd=Path("/tmp/repo2"), capture_output=True, text=True,
         )
 
 
@@ -74,13 +42,13 @@ def test_branch_delete():
     name = "feature/old"
     with patch("mgit.core.load_config") as mock_load, patch(
         "mgit.core.get_repo_paths",
-    ) as mock_paths, patch("mgit.core.run_command") as mock_run:
+    ) as mock_paths, patch("subprocess.run") as mock_run:
         mock_load.return_value = {"profiles": {"all": ["repo1"]}}
         mock_paths.return_value = [Path("/tmp/repo1")]
-        mock_run.return_value = MagicMock(returncode=0)
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         branch(root, name, delete=True, sync=False, profile=None)
         mock_run.assert_called_once_with(
-            ["git", "branch", "-D", name], cwd=Path("/tmp/repo1"),
+            ["git", "branch", "-D", name], check=False, cwd=Path("/tmp/repo1"), capture_output=True, text=True,
         )
 
 
@@ -90,21 +58,21 @@ def test_branch_sync():
     name = "main"
     with patch("mgit.core.load_config") as mock_load, patch(
         "mgit.core.get_repo_paths",
-    ) as mock_paths, patch("mgit.core.run_command") as mock_run:
+    ) as mock_paths, patch("subprocess.run") as mock_run:
         mock_load.return_value = {"profiles": {"all": ["repo1", "repo2"]}}
         mock_paths.return_value = [Path("/tmp/repo1"), Path("/tmp/repo2")]
         mock_run.side_effect = [
-            MagicMock(returncode=0, stdout="main\n"),  # get current from first repo
-            MagicMock(returncode=0),  # checkout in repo1
-            MagicMock(returncode=0),  # checkout in repo2
+            MagicMock(returncode=0, stdout="main\n", stderr=""),
+            MagicMock(returncode=0, stdout="", stderr=""),
+            MagicMock(returncode=0, stdout="", stderr=""),
         ]
         branch(root, name, delete=False, sync=True, profile=None)
         assert mock_run.call_count == 3
         mock_run.assert_any_call(
-            ["git", "branch", "--show-current"], cwd=Path("/tmp/repo1"),
+            ["git", "branch", "--show-current"], check=False, cwd=Path("/tmp/repo1"), capture_output=True, text=True,
         )
-        mock_run.assert_any_call(["git", "checkout", "main"], cwd=Path("/tmp/repo1"))
-        mock_run.assert_any_call(["git", "checkout", "main"], cwd=Path("/tmp/repo2"))
+        mock_run.assert_any_call(["git", "checkout", "main"], check=False, cwd=Path("/tmp/repo1"), capture_output=True, text=True)
+        mock_run.assert_any_call(["git", "checkout", "main"], check=False, cwd=Path("/tmp/repo2"), capture_output=True, text=True)
 
 
 def test_push_repos():
@@ -112,13 +80,13 @@ def test_push_repos():
     root = Path("/tmp")
     with patch("mgit.core.load_config") as mock_load, patch(
         "mgit.core.get_repo_paths",
-    ) as mock_paths, patch("mgit.core.run_command") as mock_run:
+    ) as mock_paths, patch("subprocess.run") as mock_run:
         mock_load.return_value = {"profiles": {"all": ["repo1"]}}
         mock_paths.return_value = [Path("/tmp/repo1")]
         mock_run.side_effect = [
-            MagicMock(returncode=0, stdout="main\n"),  # branch
-            MagicMock(returncode=1),  # upstream check
-            MagicMock(returncode=0),  # push --set-upstream
+            MagicMock(returncode=0, stdout="main\n", stderr=""),
+            MagicMock(returncode=1, stdout="", stderr=""),
+            MagicMock(returncode=0, stdout="", stderr=""),
         ]
         push_repos(root, profile=None)
         # Check calls
@@ -130,15 +98,15 @@ def test_status():
     root = Path("/tmp")
     with patch("mgit.core.load_config") as mock_load, patch(
         "mgit.core.get_repo_paths",
-    ) as mock_paths, patch("mgit.core.run_command") as mock_run, patch(
+    ) as mock_paths, patch("subprocess.run") as mock_run, patch(
         "rich.print",
     ) as mock_print:
         mock_load.return_value = {"profiles": {"all": ["repo1"]}}
         mock_paths.return_value = [Path("/tmp/repo1")]
         mock_run.side_effect = [
-            MagicMock(returncode=0, stdout="main\n"),
-            MagicMock(returncode=0, stdout=""),
-            MagicMock(returncode=0, stdout="## main...origin/main [ahead 1]\n"),
+            MagicMock(returncode=0, stdout="main\n", stderr=""),
+            MagicMock(returncode=0, stdout="", stderr=""),
+            MagicMock(returncode=0, stdout="## main...origin/main [ahead 1]\n", stderr=""),
         ]
         status(root, profile=None)
         mock_print.assert_called_once()
@@ -150,12 +118,12 @@ def test_foreach():
     cmd = "echo hello"
     with patch("mgit.core.load_config") as mock_load, patch(
         "mgit.core.get_repo_paths",
-    ) as mock_paths, patch("mgit.core.run_command") as mock_run:
+    ) as mock_paths, patch("subprocess.run") as mock_run:
         mock_load.return_value = {"profiles": {"all": ["repo1"]}}
         mock_paths.return_value = [Path("/tmp/repo1")]
-        mock_run.return_value = MagicMock(returncode=0)
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         foreach(root, cmd, profile=None)
-        mock_run.assert_called_once_with(["echo", "hello"], cwd=Path("/tmp/repo1"))
+        mock_run.assert_called_once_with(["echo", "hello"], check=False, cwd=Path("/tmp/repo1"), capture_output=True, text=True)
 
 
 def test_sync_repos():
@@ -163,13 +131,13 @@ def test_sync_repos():
     root = Path("/tmp")
     with patch("mgit.core.load_config") as mock_load, patch(
         "mgit.core.get_repo_paths",
-    ) as mock_paths, patch("mgit.core.run_command") as mock_run:
+    ) as mock_paths, patch("subprocess.run") as mock_run:
         mock_load.return_value = {"profiles": {"all": ["repo1"]}}
         mock_paths.return_value = [Path("/tmp/repo1")]
-        mock_run.return_value = MagicMock(returncode=0)
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         sync_repos(root, profile=None)
         mock_run.assert_called_once_with(
-            ["uv", "sync", "--dev"], cwd=Path("/tmp/repo1"),
+            ["uv", "sync", "--dev"], check=False, cwd=Path("/tmp/repo1"), capture_output=True, text=True,
         )
 
 
@@ -178,13 +146,13 @@ def test_run_tests():
     root = Path("/tmp")
     with patch("mgit.core.load_config") as mock_load, patch(
         "mgit.core.get_repo_paths",
-    ) as mock_paths, patch("mgit.core.run_command") as mock_run:
+    ) as mock_paths, patch("subprocess.run") as mock_run:
         mock_load.return_value = {"profiles": {"all": ["repo1"]}}
         mock_paths.return_value = [Path("/tmp/repo1")]
-        mock_run.return_value = MagicMock(returncode=0)
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         run_tests(root, glob=None, parallel=True, profile=None)
         mock_run.assert_called_once_with(
-            ["pytest", "-n", "auto"], cwd=Path("/tmp/repo1"),
+            ["pytest", "-n", "auto"], check=False, cwd=Path("/tmp/repo1"), capture_output=True, text=True,
         )
 
 
@@ -193,14 +161,14 @@ def test_commit_repos_all():
     root = Path("/tmp")
     with patch("mgit.core.load_config") as mock_load, patch(
         "mgit.core.get_repo_paths",
-    ) as mock_paths, patch("mgit.core.run_command") as mock_run:
+    ) as mock_paths, patch("subprocess.run") as mock_run:
         mock_load.return_value = {"profiles": {"all": ["repo1"]}}
         mock_paths.return_value = [Path("/tmp/repo1")]
         mock_run.side_effect = [
-            MagicMock(returncode=0),  # add
-            MagicMock(returncode=0),  # diff --cached --quiet (has changes)
-            MagicMock(returncode=0),  # commit
-            MagicMock(returncode=0, stdout="diff"),  # show
+            MagicMock(returncode=0, stdout="", stderr=""),
+            MagicMock(returncode=1, stdout="", stderr=""),
+            MagicMock(returncode=0, stdout="", stderr=""),
+            MagicMock(returncode=0, stdout="diff", stderr=""),
         ]
         commit_repos(root, all=True, message="test", profile=None)
         assert mock_run.call_count == 4
@@ -211,17 +179,17 @@ def test_commit_repos_partial():
     root = Path("/tmp")
     with patch("mgit.core.load_config") as mock_load, patch(
         "mgit.core.get_repo_paths",
-    ) as mock_paths, patch("mgit.core.run_command") as mock_run, patch(
+    ) as mock_paths, patch("subprocess.run") as mock_run, patch(
         "pathlib.Path.exists",
     ) as mock_exists:
         mock_load.return_value = {"profiles": {"all": ["repo1"]}}
         mock_paths.return_value = [Path("/tmp/repo1")]
-        mock_exists.return_value = True  # src/ exists
+        mock_exists.return_value = True
         mock_run.side_effect = [
-            MagicMock(returncode=0),  # add src/
-            MagicMock(returncode=0),  # diff --cached --quiet
-            MagicMock(returncode=0),  # commit
-            MagicMock(returncode=0, stdout="diff"),  # show
+            MagicMock(returncode=0, stdout="", stderr=""),
+            MagicMock(returncode=1, stdout="", stderr=""),
+            MagicMock(returncode=0, stdout="", stderr=""),
+            MagicMock(returncode=0, stdout="diff", stderr=""),
         ]
         commit_repos(root, all=False, message="test", profile=None)
         # Should add src/, tests/, examples/
@@ -234,11 +202,12 @@ def test_tag_repos():
     tag = "v1.0"
     with patch("mgit.core.load_config") as mock_load, patch(
         "mgit.core.get_repo_paths",
-    ) as mock_paths, patch("mgit.core.run_command") as mock_run:
+    ) as mock_paths, patch("subprocess.run") as mock_run:
         mock_load.return_value = {"profiles": {"all": ["repo1"]}}
-        mock_run.return_value = MagicMock(returncode=0)
+        mock_paths.return_value = [Path("/tmp/repo1")]
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         tag_repos(root, tag, push=False, profile=None)
-        mock_run.assert_called_once_with(["git", "tag", tag], cwd=Path("/tmp/repo1"))
+        mock_run.assert_called_once_with(["git", "tag", tag], check=False, cwd=Path("/tmp/repo1"), capture_output=True, text=True)
 
 
 def test_tag_repos_push():
@@ -247,11 +216,11 @@ def test_tag_repos_push():
     tag = "v1.0"
     with patch("mgit.core.load_config") as mock_load, patch(
         "mgit.core.get_repo_paths",
-    ) as mock_paths, patch("mgit.core.run_command") as mock_run:
+    ) as mock_paths, patch("subprocess.run") as mock_run:
         mock_load.return_value = {"profiles": {"all": ["repo1"]}}
         mock_paths.return_value = [Path("/tmp/repo1")]
-        mock_run.return_value = MagicMock(returncode=0)
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         tag_repos(root, tag, push=True, profile=None)
         assert mock_run.call_count == 2
-        mock_run.assert_any_call(["git", "tag", tag], cwd=Path("/tmp/repo1"))
-        mock_run.assert_any_call(["git", "push", "origin", tag], cwd=Path("/tmp/repo1"))
+        mock_run.assert_any_call(["git", "tag", tag], check=False, cwd=Path("/tmp/repo1"), capture_output=True, text=True)
+        mock_run.assert_any_call(["git", "push", "origin", tag], check=False, cwd=Path("/tmp/repo1"), capture_output=True, text=True)
