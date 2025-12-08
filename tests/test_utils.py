@@ -1,19 +1,16 @@
 """Test for utils functions."""
-
 import ast
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from mgit.utils import (
-    extract_imports,
-    find_dependencies,
-    find_matching_repos,
-    fold_files,
-    get_git_repos,
-    get_repos_from_config,
-    resolve_targets,
-    run_command,
-)
+from mgit.utils.extract_imports import extract_imports
+from mgit.utils.find_dependencies import find_dependencies
+from mgit.utils.find_matching_repos import find_matching_repos
+from mgit.utils.fold_files import fold_files
+from mgit.utils.get_git_repos import get_git_repos
+from mgit.utils.get_repos_from_config import get_repos_from_config
+from mgit.utils.resolve_targets import resolve_targets
+from mgit.utils.run_command import run_command
 
 
 def test_run_command():
@@ -45,7 +42,7 @@ def test_fold_files():
     """Test fold_files."""
     files = [Path("/tmp/file1.py")]
     output = Path("/tmp/output.json")
-    with patch("mgit.utils.pyperclip.copy") as mock_copy, patch(
+    with patch("mgit.utils.fold_files.pyperclip.copy") as mock_copy, patch(
         "pathlib.Path.read_text", return_value="content",
     ) as mock_read:
         fold_files(files, output)
@@ -99,7 +96,7 @@ def test_find_dependencies():
     files = [Path("/tmp/file1.py")]
     import_map = {"os": "stdlib"}
     root = Path("/tmp")
-    with patch("mgit.utils.extract_imports") as mock_extract:
+    with patch("mgit.utils.find_dependencies.extract_imports") as mock_extract:
         mock_extract.return_value = {"os"}
         deps = find_dependencies(files, import_map, root)
         assert deps == {"stdlib"}

@@ -1,12 +1,14 @@
 """Context folding operations for mgit."""
-
-import fnmatch
 from pathlib import Path
 from typing import List, Optional, Set
 
-from . import logger
-from .config import load_config
-from .utils import find_dependencies, fold_files, resolve_targets
+import fnmatch
+
+from ..config import load_config
+from ..utils.find_dependencies import find_dependencies
+from ..utils.fold_files import fold_files
+from ..utils.logger import logger
+from ..utils.resolve_targets import resolve_targets
 
 
 def prep(
@@ -23,13 +25,21 @@ def prep(
     logger.info(f"Resolved repos: {repos}, explicit files: {len(explicit_files)}")
     files = set(explicit_files)
     exclude_dirs = {".venv", "build", "__pycache__"}
+    src_mode = "src" in targets
     for repo_name in repos:
         repo = root / repo_name
         if repo.exists():
             logger.info(f"Scanning {repo_name} for .py files")
-            for file in repo.rglob("*.py"):
-                if not any(part in file.parts for part in exclude_dirs):
-                    files.add(file)
+            if src_mode:
+                src_dir = repo / "src"
+                if src_dir.exists():
+                    for file in repo.rglob("*.py"):
+                        if not any(part in file.parts for part in exclude_dirs):
+                            files.add(file)
+            else:
+                for file in repo.rglob("*.py"):
+                    if not any(part in file.parts for part in exclude_dirs):
+                        files.add(file)
     # Apply user excludes
     if exclude:
         filtered = set()

@@ -1,21 +1,18 @@
 """CLI interface for mgit using treeparse."""
-
 from pathlib import Path
 
 from treeparse import argument, cli, command, group, option
 
-from .config import edit_config, init_config
-from .core import (
-    branch,
-    commit_repos,
-    foreach,
-    push_repos,
-    run_tests,
-    status,
-    sync_repos,
-    tag_repos,
-)
-from .prep import prep
+from ..config import edit_config, init_config
+from ..core.branch import branch
+from ..core.commit import commit_repos
+from ..core.foreach import foreach
+from ..core.push import push_repos
+from ..core.status import status
+from ..core.sync import sync_repos
+from ..core.tag import tag_repos
+from ..core.test import run_tests
+from ..prep import prep
 
 
 def main() -> None:
@@ -256,7 +253,7 @@ fold_group = group(
                     help="Follow Python imports to add dependencies",
                 ),
                 option(
-                    flags=["--max-files"],
+                    flags=["--max-files", "-M"],
                     arg_type=int,
                     default=200,
                     help="Safety limit",

@@ -1,5 +1,4 @@
 """Configuration handling for mgit."""
-
 import os
 from pathlib import Path
 from typing import Any, Dict
@@ -7,7 +6,7 @@ from typing import Any, Dict
 import questionary
 import yaml
 
-from . import logger
+from ..utils.logger import logger
 
 
 def load_config(root: Path) -> Dict[str, Any]:
