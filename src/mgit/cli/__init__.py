@@ -8,6 +8,7 @@ from ..core.branch import branch
 from ..core.commit import commit_repos
 from ..core.foreach import foreach
 from ..core.push import push_repos
+from ..core.ruff import ruff_check_fix, ruff_format
 from ..core.status import status
 from ..core.sync import sync_repos
 from ..core.tag import tag_repos
@@ -31,8 +32,8 @@ config_group = group(
             help="Initialize .multigrc interactively.",
             sort_key=0,
             callback=lambda: init_config(Path.cwd()),
-        ),
-        command(
+        ),  
+                    command(
             name="edit",
             help="Edit .multigrc in editor.",
             sort_key=1,
@@ -269,10 +270,45 @@ fold_group = group(
     ],
 )
 
+# Ruff group
+ruff_group = group(
+    name="ruff",
+    help="Ruff formatting and checking operations.",
+    sort_key=4,
+    commands=[
+        command(
+            name="format",
+            help="Run ruff format in repos.",
+            sort_key=0,
+            callback=lambda profile=None: ruff_format(Path.cwd(), profile),
+            options=[
+                option(
+                    flags=["--profile", "-p"],
+                    arg_type=str,
+                    help="Profile to use.",
+                ),
+            ],
+        ),
+        command(
+            name="check",
+            help="Run ruff check --fix --unsafe-fixes in repos.",
+            sort_key=1,
+            callback=lambda profile=None: ruff_check_fix(Path.cwd(), profile),
+            options=[
+                option(
+                    flags=["--profile", "-p"],
+                    arg_type=str,
+                    help="Profile to use.",
+                ),
+            ],
+        ),
+    ],
+)
+
 # Main commands
 app = cli(
     name="mgit",
     help="CLI for managing multiple git repos.",
-    subgroups=[config_group, git_group, test_group, fold_group],
+    subgroups=[config_group, git_group, test_group, fold_group, ruff_group],
     commands=[],
 )
