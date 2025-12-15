@@ -32,18 +32,30 @@ def commit_repos(
             logger.info(f"Added basic files in {repo.name}")
         else:
             # Add specific files - check if dirs exist
-            paths = ["src/", "tests/", "examples/"]
+            paths = ["src/", "tests/", "examples/", "pyproject.toml", "README.md"]
             added_any = False
             for path in paths:
-                if (repo / path).exists():
-                    logger.info(f"Adding {path} in {repo.name}")
-                    result_add = run_command(["git", "add", path], cwd=repo)
-                    if result_add.returncode == 0:
-                        added_any = True
-                    else:
-                        logger.warning(
-                            f"Failed to add {path} in {repo.name}: {result_add.stderr}",
-                        )
+                if path.endswith("/"):
+                    if (repo / path).exists():
+                        logger.info(f"Adding {path} in {repo.name}")
+                        result_add = run_command(["git", "add", path], cwd=repo)
+                        if result_add.returncode == 0:
+                            added_any = True
+                        else:
+                            logger.warning(
+                                f"Failed to add {path} in {repo.name}: {result_add.stderr}",
+                            )
+                else:
+                    # For files like pyproject.toml, README.md, add if exists
+                    if (repo / path).exists():
+                        logger.info(f"Adding {path} in {repo.name}")
+                        result_add = run_command(["git", "add", path], cwd=repo)
+                        if result_add.returncode == 0:
+                            added_any = True
+                        else:
+                            logger.warning(
+                                f"Failed to add {path} in {repo.name}: {result_add.stderr}",
+                            )
             if added_any:
                 logger.info(f"Added specific files in {repo.name}")
             else:
