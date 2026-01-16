@@ -19,7 +19,7 @@ def test_branch_create():
     with patch("mgit.core.branch.load_config") as mock_load, patch(
         "mgit.core.branch.get_repo_paths",
     ) as mock_paths, patch("mgit.core.branch.run_command") as mock_run:
-        mock_load.return_value = {"profiles": {"all": ["repo1", "repo2"]}}
+        mock_load.return_value = MagicMock(profiles={"all": ["repo1", "repo2"]})
         mock_paths.return_value = [Path("/tmp/repo1"), Path("/tmp/repo2")]
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         branch(root, name, delete=False, sync=False, profile=None)
@@ -40,7 +40,7 @@ def test_branch_delete():
     with patch("mgit.core.branch.load_config") as mock_load, patch(
         "mgit.core.branch.get_repo_paths",
     ) as mock_paths, patch("mgit.core.branch.run_command") as mock_run:
-        mock_load.return_value = {"profiles": {"all": ["repo1"]}}
+        mock_load.return_value = MagicMock(profiles={"all": ["repo1"]})
         mock_paths.return_value = [Path("/tmp/repo1")]
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         branch(root, name, delete=True, sync=False, profile=None)
@@ -56,7 +56,7 @@ def test_branch_sync():
     with patch("mgit.core.branch.load_config") as mock_load, patch(
         "mgit.core.branch.get_repo_paths",
     ) as mock_paths, patch("mgit.core.branch.run_command") as mock_run:
-        mock_load.return_value = {"profiles": {"all": ["repo1", "repo2"]}}
+        mock_load.return_value = MagicMock(profiles={"all": ["repo1", "repo2"]})
         mock_paths.return_value = [Path("/tmp/repo1"), Path("/tmp/repo2")]
         mock_run.side_effect = [
             MagicMock(returncode=0, stdout="main\n", stderr=""),
@@ -78,7 +78,7 @@ def test_push_repos():
     with patch("mgit.core.push.load_config") as mock_load, patch(
         "mgit.core.push.get_repo_paths",
     ) as mock_paths, patch("mgit.core.push.run_command") as mock_run:
-        mock_load.return_value = {"profiles": {"all": ["repo1"]}}
+        mock_load.return_value = MagicMock(profiles={"all": ["repo1"]})
         mock_paths.return_value = [Path("/tmp/repo1")]
         mock_run.side_effect = [
             MagicMock(returncode=0, stdout="main\n", stderr=""),
@@ -98,7 +98,7 @@ def test_status():
     ) as mock_paths, patch("mgit.core.status.run_command") as mock_run, patch(
         "rich.print",
     ) as mock_print:
-        mock_load.return_value = {"profiles": {"all": ["repo1"]}}
+        mock_load.return_value = MagicMock(profiles={"all": ["repo1"]})
         mock_paths.return_value = [Path("/tmp/repo1")]
         mock_run.side_effect = [
             MagicMock(returncode=0, stdout="main\n", stderr=""),
@@ -116,7 +116,7 @@ def test_foreach():
     with patch("mgit.core.foreach.load_config") as mock_load, patch(
         "mgit.core.foreach.get_repo_paths",
     ) as mock_paths, patch("mgit.core.foreach.run_command") as mock_run:
-        mock_load.return_value = {"profiles": {"all": ["repo1"]}}
+        mock_load.return_value = MagicMock(profiles={"all": ["repo1"]})
         mock_paths.return_value = [Path("/tmp/repo1")]
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         foreach(root, cmd, profile=None)
@@ -129,7 +129,7 @@ def test_sync_repos():
     with patch("mgit.core.sync.load_config") as mock_load, patch(
         "mgit.core.sync.get_repo_paths",
     ) as mock_paths, patch("mgit.core.sync.run_command") as mock_run:
-        mock_load.return_value = {"profiles": {"all": ["repo1"]}}
+        mock_load.return_value = MagicMock(profiles={"all": ["repo1"]})
         mock_paths.return_value = [Path("/tmp/repo1")]
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         sync_repos(root, profile=None)
@@ -144,12 +144,12 @@ def test_run_tests():
     with patch("mgit.core.test.load_config") as mock_load, patch(
         "mgit.core.test.get_repo_paths",
     ) as mock_paths, patch("mgit.core.test.run_command") as mock_run:
-        mock_load.return_value = {"profiles": {"all": ["repo1"]}}
+        mock_load.return_value = MagicMock(profiles={"all": ["repo1"]})
         mock_paths.return_value = [Path("/tmp/repo1")]
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         run_tests(root, glob=None, parallel=True, profile=None)
         mock_run.assert_called_once_with(
-            ["pytest", "-n", "auto"], cwd=Path("/tmp/repo1"),
+            ["uv", "run", "--active", "pytest", "-n", "auto"], cwd=Path("/tmp/repo1"),
         )
 
 
@@ -159,7 +159,7 @@ def test_commit_repos_all():
     with patch("mgit.core.commit.load_config") as mock_load, patch(
         "mgit.core.commit.get_repo_paths",
     ) as mock_paths, patch("mgit.core.commit.run_command") as mock_run:
-        mock_load.return_value = {"profiles": {"all": ["repo1"]}}
+        mock_load.return_value = MagicMock(profiles={"all": ["repo1"]})
         mock_paths.return_value = [Path("/tmp/repo1")]
         mock_run.side_effect = [
             MagicMock(returncode=0, stdout="", stderr=""),
@@ -179,18 +179,22 @@ def test_commit_repos_partial():
     ) as mock_paths, patch("mgit.core.commit.run_command") as mock_run, patch(
         "pathlib.Path.exists",
     ) as mock_exists:
-        mock_load.return_value = {"profiles": {"all": ["repo1"]}}
+        mock_load.return_value = MagicMock(profiles={"all": ["repo1"]})
         mock_paths.return_value = [Path("/tmp/repo1")]
         mock_exists.return_value = True
         mock_run.side_effect = [
-            MagicMock(returncode=0, stdout="", stderr=""),
-            MagicMock(returncode=1, stdout="", stderr=""),
-            MagicMock(returncode=0, stdout="", stderr=""),
-            MagicMock(returncode=0, stdout="diff", stderr=""),
+            MagicMock(returncode=0, stdout="", stderr=""),  # add src/
+            MagicMock(returncode=0, stdout="", stderr=""),  # add tests/
+            MagicMock(returncode=0, stdout="", stderr=""),  # add examples/
+            MagicMock(returncode=0, stdout="", stderr=""),  # add pyproject.toml
+            MagicMock(returncode=0, stdout="", stderr=""),  # add README.md
+            MagicMock(returncode=1, stdout="", stderr=""),  # diff --cached --quiet (has changes)
+            MagicMock(returncode=0, stdout="", stderr=""),  # commit
+            MagicMock(returncode=0, stdout="diff", stderr=""),  # show
         ]
         commit_repos(root, all=False, message="test", profile=None)
         # Should add src/, tests/, examples/
-        assert mock_run.call_count == 4
+        assert mock_run.call_count == 8
 
 
 def test_tag_repos():
@@ -200,7 +204,7 @@ def test_tag_repos():
     with patch("mgit.core.tag.load_config") as mock_load, patch(
         "mgit.core.tag.get_repo_paths",
     ) as mock_paths, patch("mgit.core.tag.run_command") as mock_run:
-        mock_load.return_value = {"profiles": {"all": ["repo1"]}}
+        mock_load.return_value = MagicMock(profiles={"all": ["repo1"]})
         mock_paths.return_value = [Path("/tmp/repo1")]
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         tag_repos(root, tag, push=False, profile=None)
@@ -214,7 +218,7 @@ def test_tag_repos_push():
     with patch("mgit.core.tag.load_config") as mock_load, patch(
         "mgit.core.tag.get_repo_paths",
     ) as mock_paths, patch("mgit.core.tag.run_command") as mock_run:
-        mock_load.return_value = {"profiles": {"all": ["repo1"]}}
+        mock_load.return_value = MagicMock(profiles={"all": ["repo1"]})
         mock_paths.return_value = [Path("/tmp/repo1")]
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         tag_repos(root, tag, push=True, profile=None)

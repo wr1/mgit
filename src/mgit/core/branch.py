@@ -17,7 +17,7 @@ def branch(
 ) -> None:
     """Manage branches."""
     config = load_config(root)
-    repos = config["profiles"].get(profile or "all", [])
+    repos = config.profiles.get(profile or "all", [])
     repo_paths = get_repo_paths(root, repos)
     if delete:
         logger.info(f"Deleting branch '{name}' in repos: {repos}")

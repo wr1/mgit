@@ -16,7 +16,7 @@ def commit_repos(
 ) -> None:
     """Auto-commit in repos."""
     config = load_config(root)
-    repos = config["profiles"].get(profile or "all", [])
+    repos = config.profiles.get(profile or "all", [])
     logger.info(f"Committing in repos: {repos} with all={all}, message='{message}'")
     repo_paths = get_repo_paths(root, repos)
     for repo in repo_paths:

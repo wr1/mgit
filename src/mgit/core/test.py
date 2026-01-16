@@ -17,14 +17,14 @@ def run_tests(
 ) -> None:
     """Run pytest in matching repos."""
     config = load_config(root)
-    repos = config["profiles"].get(profile or "all", [])
+    repos = config.profiles.get(profile or "all", [])
     if glob:
         repos = find_matching_repos(repos, glob)
         logger.info(f"Filtered repos with glob '{glob}': {repos}")
     logger.info(f"Running tests in repos: {repos} with parallel={parallel}")
     repo_paths = get_repo_paths(root, repos)
     for repo in repo_paths:
-        cmd = ["pytest"]
+        cmd = ["uv", "run", "--active", "pytest"]
         if parallel:
             cmd.extend(["-n", "auto"])
         logger.info(f"Running '{' '.join(cmd)}' in {repo.name}")

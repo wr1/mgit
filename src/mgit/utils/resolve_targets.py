@@ -6,27 +6,29 @@ import fnmatch
 
 from .get_repos_from_config import get_repos_from_config
 
+from ..config import Config
+
 
 def resolve_targets(
-    config: Dict[str, any], targets: List[str], root: Path,
+    config: Config, targets: List[str], root: Path,
 ) -> tuple[Set[str], Set[Path]]:
     """Resolve targets to repos and explicit files."""
     repos = set()
     explicit_files = set()
-    all_repos = set(config.get("profiles", {}).get("all", []))
+    all_repos = set(config.profiles.get("all", []))
     magic_words = {"src", "tests", "examples", "pyproject"}
     i = 0
     while i < len(targets):
         target = targets[i]
-        if target in config.get("profiles", {}):
-            repos.update(config["profiles"][target])
-        elif target in config.get("aliases", {}):
-            repos.update(config["aliases"][target])
+        if target in config.profiles:
+            repos.update(config.profiles[target])
+        elif target in config.aliases:
+            repos.update(config.aliases[target])
         elif target in magic_words:
             # Collect following non-magic terms
             following = []
             j = i + 1
-            while j < len(targets) and targets[j] not in magic_words and targets[j] not in config.get("profiles", {}) and targets[j] not in config.get("aliases", {}):
+            while j < len(targets) and targets[j] not in magic_words and targets[j] not in config.profiles and targets[j] not in config.aliases:
                 following.append(targets[j])
                 j += 1
             if following:

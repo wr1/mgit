@@ -12,7 +12,7 @@ from ..utils.run_command import run_command
 def push_repos(root: Path, profile: Optional[str] = None) -> None:
     """Push current branch to remote in repos."""
     config = load_config(root)
-    repos = config["profiles"].get(profile or "all", [])
+    repos = config.profiles.get(profile or "all", [])
     logger.info(f"Pushing in repos: {repos}")
     repo_paths = get_repo_paths(root, repos)
     results = {}

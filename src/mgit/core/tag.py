@@ -13,7 +13,7 @@ def tag_repos(
 ) -> None:
     """Create git tag in repos."""
     config = load_config(root)
-    repos = config["profiles"].get(profile or "all", [])
+    repos = config.profiles.get(profile or "all", [])
     logger.info(f"Tagging '{tag}' in repos: {repos}")
     repo_paths = get_repo_paths(root, repos)
     for repo in repo_paths:

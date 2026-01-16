@@ -13,7 +13,7 @@ from ..utils.run_command import run_command
 def status(root: Path, profile: Optional[str] = None) -> None:
     """Show status table."""
     config = load_config(root)
-    repos = config["profiles"].get(profile or "all", [])
+    repos = config.profiles.get(profile or "all", [])
     logger.info(f"Loading status for profile '{profile or 'all'}' with repos: {repos}")
     repo_paths = get_repo_paths(root, repos)
     table = rich.table.Table(title="Repo Status")

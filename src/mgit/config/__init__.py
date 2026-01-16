@@ -5,24 +5,37 @@ from typing import Any, Dict
 
 import questionary
 import yaml
+from pydantic import BaseModel, ValidationError
 
 from ..utils.logger import logger
 
 
-def load_config(root: Path) -> Dict[str, Any]:
-    """Load .multigrc config."""
-    config_path = root / ".multigrc"
+class Config(BaseModel):
+    """Configuration model for mgit."""
+    project_name: str
+    profiles: Dict[str, list[str]]
+    aliases: Dict[str, list[str]]
+
+
+def load_config(root: Path) -> Config:
+    """Load .mgitrc config."""
+    config_path = root / ".mgitrc"
     if not config_path.exists():
         raise FileNotFoundError(
             f"Config file {config_path} not found. Run 'mgit config init'.",
         )
     with open(config_path) as f:
-        return yaml.safe_load(f)
+        data = yaml.safe_load(f)
+    try:
+        return Config(**data)
+    except ValidationError as e:
+        logger.error(f"Invalid config: {e}")
+        raise
 
 
 def init_config(root: Path) -> None:
     """Interactive config init."""
-    config_path = root / ".multigrc"
+    config_path = root / ".mgitrc"
     if config_path.exists():
         if not questionary.confirm("Config already exists. Overwrite?").ask():
             return
@@ -31,18 +44,18 @@ def init_config(root: Path) -> None:
     profiles = {}
     aliases = {}
     # Simple wizard - assume defaults for brevity
-    config = {
-        "project_name": project_name,
-        "profiles": {"all": repos},
-        "aliases": {},
-    }
+    config = Config(
+        project_name=project_name,
+        profiles={"all": repos},
+        aliases={},
+    )
     with open(config_path, "w") as f:
-        yaml.safe_dump(config, f)
+        yaml.safe_dump(config.model_dump(), f)
     logger.info(f"Config created at {config_path}")
 
 
 def edit_config(root: Path) -> None:
     """Open config in editor."""
-    config_path = root / ".multigrc"
+    config_path = root / ".mgitrc"
     editor = os.environ.get("EDITOR", "gvim")
     os.system(f"{editor} {config_path}")

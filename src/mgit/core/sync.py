@@ -11,7 +11,7 @@ from ..utils.run_command import run_command
 def sync_repos(root: Path, profile: Optional[str] = None) -> None:
     """Run uv sync --dev in each repo."""
     config = load_config(root)
-    repos = config["profiles"].get(profile or "all", [])
+    repos = config.profiles.get(profile or "all", [])
     logger.info(f"Syncing dependencies in repos: {repos}")
     repo_paths = get_repo_paths(root, repos)
     for repo in repo_paths:

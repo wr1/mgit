@@ -26,7 +26,8 @@ def test_run_command():
 
 def test_get_repos_from_config():
     """Test get_repos_from_config."""
-    config = {"profiles": {"test": ["repo1"]}, "aliases": {"alias1": ["repo2"]}}
+    from mgit.config import Config
+    config = Config(project_name="test", profiles={"test": ["repo1"]}, aliases={"alias1": ["repo2"]})
     assert get_repos_from_config(config, "test") == ["repo1"]
     assert get_repos_from_config(config, "alias1") == ["repo2"]
     assert get_repos_from_config(config, "repo3") == ["repo3"]
@@ -83,7 +84,8 @@ def test_extract_imports():
 
 def test_resolve_targets():
     """Test resolve_targets."""
-    config = {"profiles": {"all": ["repo1"]}, "aliases": {}}
+    from mgit.config import Config
+    config = Config(project_name="test", profiles={"all": ["repo1"]}, aliases={})
     targets = ["repo1"]
     root = Path("/tmp")
     repos, explicit_files = resolve_targets(config, targets, root)
