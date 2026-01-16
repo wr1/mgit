@@ -5,16 +5,16 @@ from pathlib import Path
 from treeparse import argument, cli, command, group, option
 
 from ..config import edit_config, init_config
-from ..core.branch import branch
-from ..core.commit import commit_repos
-from ..core.foreach import foreach
-from ..core.push import push_repos
-from ..core.ruff import ruff_check_fix, ruff_format
-from ..core.status import status
-from ..core.sync import sync_repos
-from ..core.tag import tag_repos
-from ..core.test import run_tests
-from ..prep import prep
+from ..git.branch import branch
+from ..git.commit import commit_repos
+from ..git.foreach import foreach
+from ..git.push import push_repos
+from ..git.status import status
+from ..git.tag import tag_repos
+from ..fold import prep
+from ..ruff.ruff import ruff_check_fix, ruff_format
+from ..test.sync import sync_repos
+from ..test.test import run_tests
 
 
 def main() -> None:

@@ -1,9 +1,6 @@
-"""Core operations for mgit."""
+"""Repo path utilities."""
 from pathlib import Path
 from typing import List
-
-from ..config import load_config
-from ..utils.logger import logger
 
 
 def get_repo_paths(root: Path, repos: List[str]) -> List[Path]:
