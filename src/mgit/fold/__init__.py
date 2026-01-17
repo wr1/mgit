@@ -19,6 +19,7 @@ def prep(
     with_deps: bool = False,
     max_files: int = 200,
     output: str = "__mgit_context.json",
+    sum: Optional[str] = None,
 ) -> None:
     """Smart cfold for targets."""
     config = load_config(root)
@@ -62,20 +63,22 @@ def prep(
     if len(files) > max_files:
         logger.warning(f"Too many files ({len(files)}), limiting to {max_files}")
         files = set(list(files)[:max_files])
-    # Generate summary using cfold sum
-    summary_path = root / "__mgit_summary.txt"
-    repo_paths = [root / r for r in repos]
-    if repo_paths:
-        logger.info(f"Running cfold sum on repos: {[str(p) for p in repo_paths]}")
-        cmd = ["cfold", "sum"] + [str(p) for p in repo_paths] + ["--output", str(summary_path)]
-        result = run_command(cmd, cwd=root)
-        if result.returncode != 0:
-            logger.warning(f"cfold sum failed: {result.stderr}")
-            summary_path = None
+    # Generate summary if requested
+    summary_path = None
+    if sum:
+        sum_repos = config.profiles.get(sum, [])
+        if sum_repos:
+            summary_path = root / f"summary_{sum}.txt"
+            logger.info(f"Generating summary for profile '{sum}' to {summary_path}")
+            cmd = ["cfold", "sum"] + [str(root / r) for r in sum_repos] + ["--output", str(summary_path)]
+            result = run_command(cmd, cwd=root)
+            if result.returncode != 0:
+                logger.warning(f"cfold sum failed for profile {sum}: {result.stderr}")
+                summary_path = None
+            else:
+                logger.info(f"Generated summary at {summary_path}")
         else:
-            logger.info(f"Generated summary at {summary_path}")
-    else:
-        summary_path = None
+            logger.warning(f"Profile '{sum}' not found or empty")
     # Include summary in files if generated
     final_files = list(files)
     if summary_path and summary_path.exists():
@@ -86,3 +89,26 @@ def prep(
     logger.info(f"Folded {len(final_files)} files to {output_path}, copied to clipboard.")
     print(f"Selected {len(final_files)} files → {output_path}")
     print("Copied to clipboard ✓")
+
+
+def summary(root: Path, repos: List[str], output: str = "summary.txt") -> None:
+    """Generate code summary for repos using cfold sum."""
+    config = load_config(root)
+    if not repos:
+        repos = config.profiles.get("all", [])
+    elif len(repos) == 1 and repos[0] in config.profiles:
+        repos = config.profiles[repos[0]]
+    # Else, repos is list of repo names
+    if not repos:
+        logger.error("No repos specified or in 'all' profile")
+        return
+    repo_paths = [str(root / r) for r in repos]
+    output_path = root / output
+    logger.info(f"Generating summary for repos: {repos} to {output_path}")
+    cmd = ["cfold", "sum"] + repo_paths + ["--output", str(output_path)]
+    result = run_command(cmd, cwd=root)
+    if result.returncode != 0:
+        logger.error(f"Failed to generate summary: {result.stderr}")
+    else:
+        logger.info(f"Summary generated at {output_path}")
+        print(f"Summary created: {output_path}")

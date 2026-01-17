@@ -11,7 +11,7 @@ from ..git.foreach import foreach
 from ..git.push import push_repos
 from ..git.status import status
 from ..git.tag import tag_repos
-from ..fold import prep
+from ..fold import prep, summary
 from ..ruff.ruff import ruff_check_fix, ruff_format
 from ..test.sync import sync_repos
 from ..test.test import run_tests
@@ -241,13 +241,15 @@ fold_group = group(
             exclude=None,
             with_deps=False,
             max_files=200,
-            output="__mgit_context.json": prep(
+            output="__mgit_context.json",
+            sum=None: prep(
                 Path.cwd(),
                 targets,
                 exclude,
                 with_deps,
                 max_files,
                 output,
+                sum,
             ),
             arguments=[
                 argument(
@@ -279,6 +281,31 @@ fold_group = group(
                     flags=["--output", "-o"],
                     arg_type=str,
                     default="__mgit_context.json",
+                    help="Output file",
+                ),
+                option(
+                    flags=["--sum"],
+                    arg_type=str,
+                    help="Profile to summarize and include in fold",
+                ),
+            ],
+        ),
+        command(
+            name="sum",
+            help="Generate code summary for repos (defaults to 'all' profile)",
+            sort_key=1,
+            callback=lambda repos=None, output="summary.txt": summary(Path.cwd(), repos or [], output),
+            options=[
+                option(
+                    flags=["--repos", "-r"],
+                    arg_type=str,
+                    multiple=True,
+                    help="Repos to summarize (overrides default profile)",
+                ),
+                option(
+                    flags=["--output", "-o"],
+                    arg_type=str,
+                    default="summary.txt",
                     help="Output file",
                 ),
             ],
