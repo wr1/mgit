@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mgit"
-version = "0.1.1"
+version = "0.1.3"
 description = "CLI for managing multiple git repositories"
 authors = [{name = "Your Name", email = "your.email@example.com"}]
 readme = "README.md"
@@ -17,6 +17,7 @@ dependencies = [
     "loguru",
     "pyperclip",
     "pydantic",
+    "logfire>=3.17.0",
 ]
 
 [project.optional-dependencies]
@@ -36,7 +37,7 @@ test = [
 mgit = "mgit.cli:main"
 
 [tool.pytest.ini_options]
-addopts = "--cov=src/mgit --cov-fail-under=30"
+addopts = "--cov=mgit --cov-fail-under=30"
 pythonpath = "src"
 
 [tool.coverage.run]
@@ -48,4 +49,10 @@ exclude_lines = [
     "def __repr__",
     "raise AssertionError",
     "raise NotImplementedError",
+]
+
+[dependency-groups]
+dev = [
+    "logfire>=3.17.0",
+    "pytest>=8.3.5",
 ]
