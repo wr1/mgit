@@ -1,20 +1,34 @@
 """Configuration handling for mgit."""
+
 import os
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import questionary
 import yaml
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, Field
 
 from ..utils.logger import logger
 
 
+class TopicConfig(BaseModel):
+    """Logical topic spanning multiple repos (e.g. "2d-meshing")."""
+
+    targets: List[str]
+    exclude: List[str] = Field(default_factory=list)
+    with_deps: bool = True
+    max_files: int = 250
+    include_summary: bool = False
+
+
 class Config(BaseModel):
     """Configuration model for mgit."""
+
     project_name: str
     profiles: Dict[str, list[str]]
     aliases: Dict[str, list[str]]
+    import_map: Dict[str, str] = Field(default_factory=dict)
+    topics: Dict[str, TopicConfig] = Field(default_factory=dict)
 
 
 def load_config(root: Path) -> Config:
@@ -48,6 +62,8 @@ def init_config(root: Path) -> None:
         project_name=project_name,
         profiles={"all": repos},
         aliases={},
+        import_map={},
+        topics={},
     )
     with open(config_path, "w") as f:
         yaml.safe_dump(config.model_dump(), f)
