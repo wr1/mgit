@@ -1,4 +1,5 @@
 """Ruff operations."""
+
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Optional
@@ -53,7 +54,8 @@ def ruff_check_fix(root: Path, profile: Optional[str] = None) -> None:
     results = {}
     with ThreadPoolExecutor(max_workers=len(repo_paths)) as executor:
         future_to_repo = {
-            executor.submit(_ruff_check_fix_single_repo, repo): repo for repo in repo_paths
+            executor.submit(_ruff_check_fix_single_repo, repo): repo
+            for repo in repo_paths
         }
         for future in as_completed(future_to_repo):
             repo = future_to_repo[future]

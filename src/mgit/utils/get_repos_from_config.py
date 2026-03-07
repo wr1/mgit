@@ -1,5 +1,6 @@
 """Config-based repo retrieval utilities."""
-from typing import Dict, List
+
+from typing import List
 
 from ..config import Config
 

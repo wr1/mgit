@@ -1,4 +1,5 @@
 """Push operations."""
+
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Optional
@@ -35,18 +36,21 @@ def push_repos(root: Path, profile: Optional[str] = None) -> None:
 def _push_single_repo(repo: Path) -> str:
     """Push for a single repo and return output."""
     branch = run_command(
-        ["git", "branch", "--show-current"], cwd=repo,
+        ["git", "branch", "--show-current"],
+        cwd=repo,
     ).stdout.strip()
     logger.info(f"Pushing branch '{branch}' in {repo.name}")
     # Check if upstream exists
     upstream_check = run_command(
-        ["git", "rev-parse", "--abbrev-ref", f"{branch}@{{upstream}}"], cwd=repo,
+        ["git", "rev-parse", "--abbrev-ref", f"{branch}@{{upstream}}"],
+        cwd=repo,
     )
     if upstream_check.returncode != 0:
         # No upstream, set it
         logger.info(f"Setting upstream for {branch} in {repo.name}")
         result = run_command(
-            ["git", "push", "--set-upstream", "origin", branch], cwd=repo,
+            ["git", "push", "--set-upstream", "origin", branch],
+            cwd=repo,
         )
     else:
         result = run_command(["git", "push"], cwd=repo)

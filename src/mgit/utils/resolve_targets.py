@@ -1,19 +1,15 @@
 """Target resolution utilities."""
-
 from pathlib import Path
-from typing import List, Set
+from typing import Dict, List, Set
 
 import fnmatch
 
-
-from ..config import Config
+from .get_repos_from_config import get_repos_from_config
+from ..config import Config, TopicConfig
 
 
 def resolve_targets(
-    config: Config,
-    targets: List[str],
-    root: Path,
-    exclude: List[str] = None,
+    config: Config, targets: List[str], root: Path, exclude: List[str] = None,
 ) -> tuple[Set[str], Set[Path]]:
     """Resolve targets to repos and explicit files."""
     repos = set()
@@ -31,12 +27,7 @@ def resolve_targets(
             # Collect following non-magic terms
             following = []
             j = i + 1
-            while (
-                j < len(targets)
-                and targets[j] not in magic_words
-                and targets[j] not in config.profiles
-                and targets[j] not in config.aliases
-            ):
+            while j < len(targets) and targets[j] not in magic_words and targets[j] not in config.profiles and targets[j] not in config.aliases:
                 following.append(targets[j])
                 j += 1
             if following:
@@ -90,13 +81,11 @@ def resolve_targets(
     return repos, explicit_files
 
 
-def resolve_topic(
-    config: Config, topic_name: str, root: Path
-) -> tuple[Set[str], Set[Path], TopicConfig]:
+def resolve_topic(config: Config, topic_name: str, root: Path) -> tuple[Set[str], Set[Path], TopicConfig]:
     """Resolve a topic name → repos, files, and topic settings."""
     if topic_name not in config.topics:
         raise ValueError(f"Topic '{topic_name}' not found in .mgitrc")
-
+    
     topic = config.topics[topic_name]
     # Reuse your existing resolver (it already handles repo:glob perfectly)
     selected_repos, explicit_files = resolve_targets(

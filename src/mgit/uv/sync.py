@@ -1,8 +1,9 @@
 """Sync operations."""
+
 from pathlib import Path
 from typing import Optional
 
-from . import get_repo_paths
+from ..utils.repo_paths import get_repo_paths
 from ..config import load_config
 from ..utils.logger import logger
 from ..utils.run_command import run_command

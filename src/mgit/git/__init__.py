@@ -1,4 +1,5 @@
 """Git operations for mgit."""
+
 from .branch import branch
 from .commit import commit_repos
 from .foreach import foreach

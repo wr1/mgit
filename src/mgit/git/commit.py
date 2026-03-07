@@ -1,4 +1,5 @@
 """Commit operations."""
+
 from pathlib import Path
 from typing import Optional
 
@@ -24,7 +25,8 @@ def commit_repos(
         if all:
             logger.info(f"Adding basic files in {repo.name}")
             result_add = run_command(
-                ["git", "add", "*.py", "pyproject.toml", "README.md"], cwd=repo,
+                ["git", "add", "*.py", "pyproject.toml", "README.md"],
+                cwd=repo,
             )
             if result_add.returncode != 0:
                 logger.error(f"Failed to add files in {repo.name}: {result_add.stderr}")
@@ -67,7 +69,8 @@ def commit_repos(
             continue
         logger.info(f"Committing in {repo.name}")
         result_commit = run_command(
-            ["git", "commit", "-m", message, "--no-edit"], cwd=repo,
+            ["git", "commit", "-m", message, "--no-edit"],
+            cwd=repo,
         )
         if result_commit.returncode != 0:
             logger.error(

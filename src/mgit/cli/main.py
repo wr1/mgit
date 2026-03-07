@@ -369,5 +369,5 @@ app = cli(
     help="CLI for managing multiple git repos.",
     subgroups=[config_group, git_group, uv_group, test_group, fold_group, ruff_group],
     commands=[],
-    theme="red_white_blue",
+    # theme="red_white_blue",
 )

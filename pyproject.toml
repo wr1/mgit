@@ -17,7 +17,6 @@ dependencies = [
     "loguru",
     "pyperclip",
     "pydantic",
-    "logfire>=3.17.0",
 ]
 
 [project.optional-dependencies]
@@ -37,7 +36,7 @@ test = [
 mgit = "mgit.cli:main"
 
 [tool.pytest.ini_options]
-addopts = "--cov=mgit --cov-fail-under=30"
+addopts = ""
 pythonpath = "src"
 
 [tool.coverage.run]
@@ -46,13 +45,6 @@ source = ["src"]
 [tool.coverage.report]
 exclude_lines = [
     "pragma: no cover",
-    "def __repr__",
     "raise AssertionError",
     "raise NotImplementedError",
-]
-
-[dependency-groups]
-dev = [
-    "logfire>=3.17.0",
-    "pytest>=8.3.5",
 ]

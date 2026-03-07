@@ -1,4 +1,5 @@
 """Repo matching utilities."""
+
 import fnmatch
 from typing import List
 

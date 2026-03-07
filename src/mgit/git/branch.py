@@ -1,4 +1,5 @@
 """Branch management operations."""
+
 from pathlib import Path
 from typing import Optional
 
@@ -28,7 +29,8 @@ def branch(
                 logger.error(f"Failed to delete branch in {repo.name}: {result.stderr}")
     elif sync:
         current = run_command(
-            ["git", "branch", "--show-current"], cwd=root / repos[0],
+            ["git", "branch", "--show-current"],
+            cwd=root / repos[0],
         ).stdout.strip()
         logger.info(f"Syncing to branch '{current}' in repos: {repos}")
         for repo in repo_paths:

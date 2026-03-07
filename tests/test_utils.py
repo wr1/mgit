@@ -1,4 +1,5 @@
 """Test for utils functions."""
+
 import ast
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -19,7 +20,11 @@ def test_run_command():
         mock_run.return_value = MagicMock(returncode=0, stdout="output", stderr="")
         result = run_command(["echo", "hello"])
         mock_run.assert_called_once_with(
-            ["echo", "hello"], check=False, cwd=None, capture_output=True, text=True,
+            ["echo", "hello"],
+            check=False,
+            cwd=None,
+            capture_output=True,
+            text=True,
         )
         assert result.returncode == 0
 
@@ -27,7 +32,10 @@ def test_run_command():
 def test_get_repos_from_config():
     """Test get_repos_from_config."""
     from mgit.config import Config
-    config = Config(project_name="test", profiles={"test": ["repo1"]}, aliases={"alias1": ["repo2"]})
+
+    config = Config(
+        project_name="test", profiles={"test": ["repo1"]}, aliases={"alias1": ["repo2"]}
+    )
     assert get_repos_from_config(config, "test") == ["repo1"]
     assert get_repos_from_config(config, "alias1") == ["repo2"]
     assert get_repos_from_config(config, "repo3") == ["repo3"]
@@ -44,7 +52,8 @@ def test_fold_files():
     files = [Path("/tmp/file1.py")]
     output = Path("/tmp/output.json")
     with patch("mgit.utils.fold_files.pyperclip.copy") as mock_copy, patch(
-        "pathlib.Path.read_text", return_value="content",
+        "pathlib.Path.read_text",
+        return_value="content",
     ) as mock_read:
         fold_files(files, output)
         mock_copy.assert_called_once_with("content")
@@ -85,6 +94,7 @@ def test_extract_imports():
 def test_resolve_targets():
     """Test resolve_targets."""
     from mgit.config import Config
+
     config = Config(project_name="test", profiles={"all": ["repo1"]}, aliases={})
     targets = ["repo1"]
     root = Path("/tmp")

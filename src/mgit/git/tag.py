@@ -1,4 +1,5 @@
 """Tag operations."""
+
 from pathlib import Path
 from typing import Optional
 
@@ -9,7 +10,10 @@ from ..utils.run_command import run_command
 
 
 def tag_repos(
-    root: Path, tag: str, push: bool = False, profile: Optional[str] = None,
+    root: Path,
+    tag: str,
+    push: bool = False,
+    profile: Optional[str] = None,
 ) -> None:
     """Create git tag in repos."""
     config = load_config(root)

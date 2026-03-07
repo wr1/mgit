@@ -1,4 +1,5 @@
 """Status operations."""
+
 from pathlib import Path
 from typing import Optional
 
@@ -24,7 +25,8 @@ def status(root: Path, profile: Optional[str] = None) -> None:
     for repo in repo_paths:
         logger.info(f"Checking status for {repo.name}")
         branch = run_command(
-            ["git", "branch", "--show-current"], cwd=repo,
+            ["git", "branch", "--show-current"],
+            cwd=repo,
         ).stdout.strip()
         dirty = (
             "Yes"
@@ -32,7 +34,8 @@ def status(root: Path, profile: Optional[str] = None) -> None:
             else "No"
         )
         ahead_behind = run_command(
-            ["git", "status", "-b", "--porcelain"], cwd=repo,
+            ["git", "status", "-b", "--porcelain"],
+            cwd=repo,
         ).stdout.split()[1:3]
         table.add_row(repo.name, branch, dirty, "/".join(ahead_behind))
     rich.print(table)
