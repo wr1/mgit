@@ -11,9 +11,10 @@ from ..git.foreach import foreach
 from ..git.push import push_repos
 from ..git.status import status
 from ..git.tag import tag_repos
-from ..fold import prep, summary
+from ..fold.prep import prep
+from ..fold.summarize import summary
 from ..ruff.ruff import ruff_check_fix, ruff_format
-from ..test.sync import sync_repos
+from ..uv.sync import sync_repos
 from ..test.test import run_tests
 
 
@@ -114,9 +115,9 @@ git_group = group(
             name="commit",
             help="Auto-commit in repos.",
             sort_key=3,
-            callback=lambda all=False,
-            message="Auto commit new files",
-            profile=None: commit_repos(Path.cwd(), all, message, profile),
+            callback=lambda all=False, message="Auto commit new files", profile=None: (
+                commit_repos(Path.cwd(), all, message, profile)
+            ),
             options=[
                 option(
                     flags=["--all", "-a"],
@@ -178,10 +179,10 @@ git_group = group(
     ],
 )
 
-# Test group
-test_group = group(
-    name="test",
-    help="Testing and dependency operations.",
+# Uv group
+uv_group = group(
+    name="uv",
+    help="Uv operations across repos.",
     sort_key=2,
     commands=[
         command(
@@ -197,10 +198,19 @@ test_group = group(
                 ),
             ],
         ),
+    ],
+)
+
+# Test group
+test_group = group(
+    name="test",
+    help="Testing operations.",
+    sort_key=3,
+    commands=[
         command(
             name="test",
             help="Run pytest in repos.",
-            sort_key=1,
+            sort_key=0,
             callback=lambda glob=None, parallel=True, profile=None: run_tests(
                 Path.cwd(),
                 glob,
@@ -231,25 +241,23 @@ test_group = group(
 fold_group = group(
     name="fold",
     help="Context folding operations.",
-    sort_key=3,
+    sort_key=4,
     commands=[
         command(
             name="prep",
             help="Flexible context folding for multiple repos and files",
             sort_key=0,
-            callback=lambda targets,
-            exclude=None,
-            with_deps=False,
-            max_files=200,
-            output="__mgit_context.json",
-            sum=None: prep(
-                Path.cwd(),
-                targets,
-                exclude,
-                with_deps,
-                max_files,
-                output,
-                sum,
+            callback=lambda targets, exclude=None, with_deps=False, max_files=200, output="context.json", sum=None, no_summary=False: (
+                prep(
+                    Path.cwd(),
+                    targets,
+                    exclude,
+                    with_deps,
+                    max_files,
+                    output,
+                    sum,
+                    no_summary,
+                )
             ),
             arguments=[
                 argument(
@@ -280,7 +288,7 @@ fold_group = group(
                 option(
                     flags=["--output", "-o"],
                     arg_type=str,
-                    default="__mgit_context.json",
+                    default="context.json",
                     help="Output file",
                 ),
                 option(
@@ -288,13 +296,20 @@ fold_group = group(
                     arg_type=str,
                     help="Profile to summarize and include in fold",
                 ),
+                option(
+                    flags=["--no-summary"],
+                    arg_type=bool,
+                    help="Do not include summary even if topic specifies it",
+                ),
             ],
         ),
         command(
             name="sum",
             help="Generate code summary for repos (defaults to 'all' profile)",
             sort_key=1,
-            callback=lambda repos=None, output="summary.txt": summary(Path.cwd(), repos or [], output),
+            callback=lambda repos=None, output="summary.txt": summary(
+                Path.cwd(), repos or [], output
+            ),
             options=[
                 option(
                     flags=["--repos", "-r"],
@@ -317,7 +332,7 @@ fold_group = group(
 ruff_group = group(
     name="ruff",
     help="Ruff formatting and checking operations.",
-    sort_key=4,
+    sort_key=5,
     commands=[
         command(
             name="format",
@@ -352,6 +367,7 @@ ruff_group = group(
 app = cli(
     name="mgit",
     help="CLI for managing multiple git repos.",
-    subgroups=[config_group, git_group, test_group, fold_group, ruff_group],
+    subgroups=[config_group, git_group, uv_group, test_group, fold_group, ruff_group],
     commands=[],
+    theme="red_white_blue",
 )
