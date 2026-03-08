@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 
 import questionary
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 from ..utils.logger import logger
 
@@ -75,3 +75,53 @@ def edit_config(root: Path) -> None:
     config_path = root / ".mgitrc"
     editor = os.environ.get("EDITOR", "gvim")
     os.system(f"{editor} {config_path}")
+
+
+def print_example_config() -> None:
+    """Print annotated example .mgitrc for LLM demo."""
+    example = """# This is a DEMO .mgitrc file for the mgit tool.
+# It uses dummy repo names and settings to illustrate configuration.
+# Copy and adapt this for your real project.
+# Run 'mgit config help' to see this output.
+
+project_name: my-demo-project  # Name of your project
+
+profiles:
+  all:  # Default profile with all repos
+    - dummy-repo1
+    - dummy-repo2
+    - dummy-repo3
+  dev:  # Profile for development repos
+    - dummy-repo1
+    - dummy-repo2
+  prod:  # Profile for production repos
+    - dummy-repo3
+
+aliases:
+  frontend: [dummy-repo1]  # Alias for frontend-related repos
+  backend: [dummy-repo2, dummy-repo3]  # Alias for backend repos
+
+# Optional: Map imports to repos for dependency folding
+import_map:
+  dummy_lib: dummy-repo1  # If dummy-repo1 provides dummy_lib
+
+# Optional: Define topics for smart folding
+topics:
+  demo-topic:  # A topic example with explicit repo names
+    targets: [dummy-repo1, dummy-repo2]
+    exclude: ["*.log"]  # Exclude log files
+    with_deps: true  # Follow Python imports
+    max_files: 100  # Limit files
+    include_summary: false  # Don't include summary by default
+  dev-topic:  # Topic using a profile name as target
+    targets: ["dev"]  # Refers to the 'dev' profile above
+    exclude: ["__pycache__/**"]
+    with_deps: true
+    max_files: 200
+  python-files:  # Topic using a glob pattern as target
+    targets: ["**/*.py"]  # Glob for all Python files across repos
+    exclude: ["tests/**", "*.pyc"]
+    with_deps: false  # No dependency following for globs
+    max_files: 500
+"""
+    print(example)

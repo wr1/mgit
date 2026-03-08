@@ -29,11 +29,15 @@ def prep(
 
     # === NEW: Topic detection ===
     topic = None
+    topic_name = None
     if targets and targets[0] in config.topics:
         topic_name = targets[0]
         selected_repos, explicit_files, topic = resolve_topic(config, topic_name, root)
         use_with_deps = topic.with_deps
         use_max_files = topic.max_files
+        # Override default output for topics
+        if output == "context.json":
+            output = f"{topic_name}.json"
         print(f"Using topic '{topic_name}' → {len(selected_repos)} repos")
     else:
         selected_repos, explicit_files = resolve_targets(config, targets, root, exclude)
@@ -60,6 +64,13 @@ def prep(
                 for file in repo.rglob("*.py"):
                     if not any(part in file.parts for part in exclude_dirs):
                         files.add(file)
+    # Apply topic excludes
+    if topic:
+        filtered = set()
+        for file in files:
+            if not any(fnmatch.fnmatch(str(file), excl) for excl in topic.exclude):
+                filtered.add(file)
+        files = filtered
     # Apply user excludes if not topic
     if exclude and not topic:
         filtered = set()
@@ -112,6 +123,7 @@ def prep(
             final_files.insert(0, summary_output)
     output_path = root / output
     logger.info(f"Folding {len(final_files)} files to {output_path}")
+    logger.info(f"Files included: {', '.join(str(f) for f in final_files)}")
     fold_files(final_files, output_path)
     print(f"✓ Folded {len(final_files)} items (incl. summary) → {output}")
     print("Copied to clipboard ✓")

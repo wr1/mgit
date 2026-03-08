@@ -4,7 +4,7 @@ from pathlib import Path
 
 from treeparse import argument, cli, command, group, option
 
-from ..config import edit_config, init_config
+from ..config import edit_config, init_config, print_example_config
 from ..git.branch import branch
 from ..git.commit import commit_repos
 from ..git.foreach import foreach
@@ -40,6 +40,12 @@ config_group = group(
             help="Edit .mgitrc in editor.",
             sort_key=1,
             callback=lambda: edit_config(Path.cwd()),
+        ),
+        command(
+            name="help",
+            help="Show annotated example .mgitrc for LLM.",
+            sort_key=2,
+            callback=lambda: print_example_config(),
         ),
     ],
 )

@@ -3,6 +3,7 @@
 import ast
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+import subprocess
 
 from mgit.utils.extract_imports import extract_imports
 from mgit.utils.find_dependencies import find_dependencies
@@ -25,6 +26,8 @@ def test_run_command():
             cwd=None,
             capture_output=True,
             text=True,
+            timeout=300,
+            stdin=subprocess.DEVNULL,
         )
         assert result.returncode == 0
 
