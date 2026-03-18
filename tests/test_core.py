@@ -232,7 +232,7 @@ def test_prep_with_sum():
         # Check that run_command was called for sum
         assert mock_run.call_count == 1
         mock_run.assert_called_with(
-            ["cfold", "summarize", "--clip", "False"]
+            ["cfold", "sum"]
             + [str(root / "repo2")]
             + ["--output", str(root / "summary_test.txt")],
             cwd=root,
@@ -263,7 +263,7 @@ def test_summary():
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         summary(root, ["repo1"])
         mock_run.assert_called_with(
-            ["cfold", "summarize", "--clip", "False"]
+            ["cfold", "sum"]
             + [str(root / "repo1")]
             + ["--output", str(root / "summary.txt")],
             cwd=root,
@@ -281,7 +281,7 @@ def test_summary_profile():
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         summary(root, ["code"])
         mock_run.assert_called_with(
-            ["cfold", "summarize", "--clip", "False"]
+            ["cfold", "sum"]
             + [str(root / "repo2")]
             + ["--output", str(root / "summary.txt")],
             cwd=root,

@@ -22,7 +22,7 @@ def summary(root: Path, repos: List[str], output: str = "summary.txt") -> None:
     output_path = root / output
     logger.info(f"Generating summary for repos: {repos} to {output_path}")
     cmd = (
-        ["cfold", "summarize", "--clip", "False"]
+        ["cfold", "sum"]
         + [str(root / r) for r in repos]
         + ["--output", str(output_path)]
     )
