@@ -24,9 +24,17 @@ def run_tests(
         logger.info(f"Filtered repos with glob '{glob}': {repos}")
     logger.info(f"Running tests in repos: {repos} with parallel={parallel}")
     repo_paths = get_repo_paths(root, repos)
+    # Check if pytest-xdist is available for parallel execution
+    try:
+        import pytest_xdist  # noqa: F401
+        has_xdist = True
+    except ImportError:
+        has_xdist = False
+        if parallel:
+            logger.warning("pytest-xdist not available, running tests sequentially")
     for repo in repo_paths:
         cmd = ["uv", "run", "--active", "pytest"]
-        if parallel:
+        if parallel and has_xdist:
             cmd.extend(["-n", "auto"])
         logger.info(f"Running '{' '.join(cmd)}' in {repo.name}")
         result = run_command(cmd, cwd=repo)

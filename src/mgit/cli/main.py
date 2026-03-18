@@ -13,9 +13,10 @@ from ..git.status import status
 from ..git.tag import tag_repos
 from ..fold.prep import prep
 from ..fold.summarize import summary
-from ..ruff.ruff import ruff_check_fix, ruff_format
+from ..ruff.ruff import ruff_fix, ruff_format
 from ..uv.sync import sync_repos
 from ..test.test import run_tests
+from ..version.bump import bump_version
 
 
 def main() -> None:
@@ -354,10 +355,10 @@ ruff_group = group(
             ],
         ),
         command(
-            name="check",
+            name="fix",
             help="Run ruff check --fix --unsafe-fixes in repos.",
             sort_key=1,
-            callback=lambda profile=None: ruff_check_fix(Path.cwd(), profile),
+            callback=lambda profile=None: ruff_fix(Path.cwd(), profile),
             options=[
                 option(
                     flags=["--profile", "-p"],
@@ -369,11 +370,68 @@ ruff_group = group(
     ],
 )
 
+# NEW: Version group — synced versioning (exactly what you asked for)
+version_group = group(
+    name="version",
+    help="Version bumping synced across all toolbox repos (master-driven).",
+    sort_key=6,
+    commands=[
+        command(
+            name="bump",
+            help="Bump version in master (uv) + sync to every repo",
+            sort_key=0,
+            callback=lambda level="patch", profile=None, dry_run=False, commit=False, tag=False: (
+                bump_version(Path.cwd(), level, profile, dry_run, commit, tag)
+            ),
+            arguments=[
+                argument(
+                    name="level",
+                    arg_type=str,
+                    default="patch",
+                    help="patch | minor | major",
+                ),
+            ],
+            options=[
+                option(
+                    flags=["--profile", "-p"],
+                    arg_type=str,
+                    help="Profile to sync (default: all)",
+                ),
+                option(
+                    flags=["--dry-run", "-n"],
+                    arg_type=bool,
+                    help="Show what would happen",
+                ),
+                option(
+                    flags=["--commit", "-c"],
+                    arg_type=bool,
+                    help="Auto-commit pyproject.toml changes",
+                ),
+                option(
+                    flags=["--tag", "-t"],
+                    arg_type=bool,
+                    help="Create git tag (master only)",
+                ),
+            ],
+        ),
+    ],
+)
+
 # Main commands
 app = cli(
     name="mgit",
     help="CLI for managing multiple git repos.",
-    subgroups=[config_group, git_group, uv_group, test_group, fold_group, ruff_group],
+    subgroups=[
+        config_group,
+        git_group,
+        uv_group,
+        test_group,
+        fold_group,
+        ruff_group,
+        version_group,
+    ],
     commands=[],
+    show_types=True,
+    show_defaults=True,
     # theme="red_white_blue",
 )

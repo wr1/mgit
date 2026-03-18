@@ -1,5 +1,4 @@
 """Configuration handling for mgit."""
-
 import os
 from pathlib import Path
 from typing import Any, Dict, List
@@ -29,6 +28,7 @@ class Config(BaseModel):
     aliases: Dict[str, list[str]]
     import_map: Dict[str, str] = Field(default_factory=dict)
     topics: Dict[str, TopicConfig] = Field(default_factory=dict)
+    master_repo: str = Field(default="b3m", description="Master toolbox repo that controls the canonical version")
 
 
 def load_config(root: Path) -> Config:
@@ -64,6 +64,7 @@ def init_config(root: Path) -> None:
         aliases={},
         import_map={},
         topics={},
+        master_repo="b3m",
     )
     with open(config_path, "w") as f:
         yaml.safe_dump(config.model_dump(), f)
@@ -123,5 +124,8 @@ topics:
     exclude: ["tests/**", "*.pyc"]
     with_deps: false  # No dependency following for globs
     max_files: 500
+
+# NEW: Master repo that owns the canonical version (used by `mgit version bump`)
+master_repo: b3m
 """
     print(example)

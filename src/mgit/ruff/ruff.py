@@ -38,14 +38,14 @@ def _ruff_format_single_repo(repo: Path) -> str:
     logger.info(f"Running 'ruff format' in {repo.name}")
     result = run_command(["ruff", "format"], cwd=repo)
     if result.returncode != 0:
-        logger.error(f"Failed to format in {repo.name}: {result.stderr}")
+        logger.error(f"Failed to format in {repo.name}: {result.stdout} {result.stderr}")
         return result.stderr
     else:
         logger.info(f"Formatted in {repo.name}")
         return (result.stdout + result.stderr).strip()
 
 
-def ruff_check_fix(root: Path, profile: Optional[str] = None) -> None:
+def ruff_fix(root: Path, profile: Optional[str] = None) -> None:
     """Run ruff check --fix --unsafe-fixes in repos in parallel."""
     config = load_config(root)
     repos = config.profiles.get(profile or "all", [])
@@ -54,7 +54,7 @@ def ruff_check_fix(root: Path, profile: Optional[str] = None) -> None:
     results = {}
     with ThreadPoolExecutor(max_workers=len(repo_paths)) as executor:
         future_to_repo = {
-            executor.submit(_ruff_check_fix_single_repo, repo): repo
+            executor.submit(_ruff_fix_single_repo, repo): repo
             for repo in repo_paths
         }
         for future in as_completed(future_to_repo):
@@ -65,17 +65,17 @@ def ruff_check_fix(root: Path, profile: Optional[str] = None) -> None:
             except Exception as exc:
                 results[repo.name] = f"Error: {exc}"
     for repo_name, output in results.items():
-        print(f"Ruff check output for {repo_name}:")
+        print(f"Ruff fix output for {repo_name}:")
         print(output)
 
 
-def _ruff_check_fix_single_repo(repo: Path) -> str:
+def _ruff_fix_single_repo(repo: Path) -> str:
     """Run ruff check --fix --unsafe-fixes for a single repo and return output."""
     logger.info(f"Running 'ruff check --fix --unsafe-fixes' in {repo.name}")
     result = run_command(["ruff", "check", "--fix", "--unsafe-fixes"], cwd=repo)
     if result.returncode != 0:
-        logger.error(f"Failed to check/fix in {repo.name}: {result.stderr}")
-        return result.stderr
+        logger.error(f"Failed to check/fix in {repo.name}: {result.stdout} {result.stderr}")
+        return (result.stdout + result.stderr).strip()
     else:
         logger.info(f"Checked/fixed in {repo.name}")
         return (result.stdout + result.stderr).strip()

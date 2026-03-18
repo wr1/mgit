@@ -1,4 +1,5 @@
 """Summarize operations for mgit."""
+
 from pathlib import Path
 from typing import List
 
@@ -20,7 +21,11 @@ def summary(root: Path, repos: List[str], output: str = "summary.txt") -> None:
         return
     output_path = root / output
     logger.info(f"Generating summary for repos: {repos} to {output_path}")
-    cmd = ["cfold", "sum"] + [str(root / r) for r in repos] + ["--output", str(output_path)]
+    cmd = (
+        ["cfold", "summarize", "--clip", "False"]
+        + [str(root / r) for r in repos]
+        + ["--output", str(output_path)]
+    )
     logger.info(f"Running command: {' '.join(cmd)}")
     result = run_command(cmd, cwd=root)
     if result.returncode != 0 or not output_path.exists():
