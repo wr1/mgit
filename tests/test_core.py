@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
@@ -163,7 +164,8 @@ def test_run_tests():
         mock_paths.return_value = [root / "repo1"]
         mock_find.return_value = ["repo1"]
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
-        run_tests(root, glob="test_*")
+        with patch.dict(sys.modules, {"pytest_xdist": MagicMock()}):
+            run_tests(root, glob="test_*")
         mock_find.assert_called_with(["repo1"], "test_*")
         mock_run.assert_called_with(
             ["uv", "run", "--active", "pytest", "-n", "auto"], cwd=root / "repo1"
@@ -230,7 +232,7 @@ def test_prep_with_sum():
         # Check that run_command was called for sum
         assert mock_run.call_count == 1
         mock_run.assert_called_with(
-            ["cfold", "sum"]
+            ["cfold", "summarize", "--clip", "False"]
             + [str(root / "repo2")]
             + ["--output", str(root / "summary_test.txt")],
             cwd=root,
@@ -261,7 +263,7 @@ def test_summary():
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         summary(root, ["repo1"])
         mock_run.assert_called_with(
-            ["cfold", "sum"]
+            ["cfold", "summarize", "--clip", "False"]
             + [str(root / "repo1")]
             + ["--output", str(root / "summary.txt")],
             cwd=root,
@@ -279,7 +281,7 @@ def test_summary_profile():
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         summary(root, ["code"])
         mock_run.assert_called_with(
-            ["cfold", "sum"]
+            ["cfold", "summarize", "--clip", "False"]
             + [str(root / "repo2")]
             + ["--output", str(root / "summary.txt")],
             cwd=root,

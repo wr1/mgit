@@ -100,7 +100,7 @@ def prep(
             summary_path = root / f"summary_{sum}.txt"
             logger.info(f"Generating summary for profile '{sum}' to {summary_path}")
             cmd = (
-                ["cfold", "sum"]
+                ["cfold", "summarize", "--clip", "False"]
                 + [str(root / r) for r in sum_repos]
                 + ["--output", str(summary_path)]
             )
