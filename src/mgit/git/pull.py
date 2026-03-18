@@ -35,7 +35,11 @@ def pull_repos(
             try:
                 results[repo.name] = future.result()
             except Exception as exc:
-                results[repo.name] = {"status": "error", "output": str(exc), "conflicts": []}
+                results[repo.name] = {
+                    "status": "error",
+                    "output": str(exc),
+                    "conflicts": [],
+                }
 
     if fmt != "rich":
         emit({"profile": profile or "all", "repos": results}, fmt)
@@ -61,7 +65,11 @@ def _pull_single_repo(repo: Path, rebase: bool, stash: bool) -> dict:
         if dirty:
             s = run_command(["git", "stash"], cwd=repo)
             if s.returncode != 0:
-                return {"status": "error", "output": f"stash failed: {s.stderr}", "conflicts": []}
+                return {
+                    "status": "error",
+                    "output": f"stash failed: {s.stderr}",
+                    "conflicts": [],
+                }
             stash_created = True
             logger.info(f"Stashed in {repo.name}")
 
@@ -71,7 +79,9 @@ def _pull_single_repo(repo: Path, rebase: bool, stash: bool) -> dict:
     conflicts: list[str] = []
     if result.returncode != 0:
         # Detect conflict markers
-        conflict_check = run_command(["git", "diff", "--name-only", "--diff-filter=U"], cwd=repo)
+        conflict_check = run_command(
+            ["git", "diff", "--name-only", "--diff-filter=U"], cwd=repo
+        )
         conflicts = [f.strip() for f in conflict_check.stdout.splitlines() if f.strip()]
         status = "error"
         output = (result.stdout + result.stderr).strip()

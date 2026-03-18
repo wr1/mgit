@@ -27,6 +27,7 @@ def run_tests(
     # Check if pytest-xdist is available for parallel execution
     try:
         import pytest_xdist  # noqa: F401
+
         has_xdist = True
     except ImportError:
         has_xdist = False

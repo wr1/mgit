@@ -1,7 +1,8 @@
 """Configuration handling for mgit."""
+
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Dict, List
 
 import questionary
 import yaml
@@ -28,7 +29,10 @@ class Config(BaseModel):
     aliases: Dict[str, list[str]]
     import_map: Dict[str, str] = Field(default_factory=dict)
     topics: Dict[str, TopicConfig] = Field(default_factory=dict)
-    master_repo: str = Field(default="b3m", description="Master toolbox repo that controls the canonical version")
+    master_repo: str = Field(
+        default="b3m",
+        description="Master toolbox repo that controls the canonical version",
+    )
 
 
 def load_config(root: Path) -> Config:
@@ -55,8 +59,6 @@ def init_config(root: Path) -> None:
             return
     repos = [d.name for d in root.iterdir() if d.is_dir() and (d / ".git").exists()]
     project_name = questionary.text("Project name:", default="my-project").ask()
-    profiles = {}
-    aliases = {}
     # Simple wizard - assume defaults for brevity
     config = Config(
         project_name=project_name,

@@ -1,3 +1,3 @@
 """mgit: CLI for managing multiple git repositories."""
 
-from .utils.logger import logger
+from .utils.logger import logger as logger

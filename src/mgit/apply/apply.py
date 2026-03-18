@@ -15,10 +15,7 @@ Patch file format (JSON):
 
 import json
 from pathlib import Path
-from typing import Optional
 
-from ..utils.repo_paths import get_repo_paths
-from ..config import load_config
 from ..utils.logger import logger
 from ..utils.run_command import run_command
 from ..utils.output import emit
@@ -33,7 +30,9 @@ def apply_patch(
     fmt: str = "rich",
 ) -> None:
     """Apply a JSON patch file across repos."""
-    patch_path = Path(patch_file) if Path(patch_file).is_absolute() else root / patch_file
+    patch_path = (
+        Path(patch_file) if Path(patch_file).is_absolute() else root / patch_file
+    )
     if not patch_path.exists():
         print(f"Error: patch file not found: {patch_path}")
         return
@@ -48,13 +47,17 @@ def apply_patch(
         print("Error: patch file must have a top-level 'repos' key")
         return
 
-    config = load_config(root)
     results: dict[str, dict] = {}
 
     for repo_name, ops in patch["repos"].items():
         repo_path = root / repo_name
         if not repo_path.is_dir():
-            results[repo_name] = {"status": "error", "error": "repo directory not found", "applied": [], "deleted": []}
+            results[repo_name] = {
+                "status": "error",
+                "error": "repo directory not found",
+                "applied": [],
+                "deleted": [],
+            }
             continue
 
         applied: list[str] = []
@@ -101,12 +104,18 @@ def apply_patch(
             if add_result.returncode != 0:
                 errors.append(f"git add failed: {add_result.stderr}")
             else:
-                commit_result = run_command(["git", "commit", "-m", message, "--no-edit"], cwd=repo_path)
+                commit_result = run_command(
+                    ["git", "commit", "-m", message, "--no-edit"], cwd=repo_path
+                )
                 if commit_result.returncode == 0:
-                    sha_result = run_command(["git", "rev-parse", "--short", "HEAD"], cwd=repo_path)
+                    sha_result = run_command(
+                        ["git", "rev-parse", "--short", "HEAD"], cwd=repo_path
+                    )
                     commit_sha = sha_result.stdout.strip()
                 else:
-                    errors.append(f"git commit failed: {commit_result.stderr or commit_result.stdout}")
+                    errors.append(
+                        f"git commit failed: {commit_result.stderr or commit_result.stdout}"
+                    )
 
         results[repo_name] = {
             "status": "error" if errors else "ok",

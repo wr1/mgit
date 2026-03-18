@@ -3,10 +3,10 @@
 Driven by the master repo (default: b3m, configurable in .mgitrc).
 Uses `uv version --bump` on the master then propagates the exact version.
 """
+
 from pathlib import Path
 from typing import Optional
 
-import rich
 from rich.console import Console
 from rich.table import Table
 
@@ -35,7 +35,9 @@ def bump_version(
         console.print(f"[red]✗ Master repo '{master}' not found[/red]")
         return
 
-    console.print(f"[bold cyan]mgit version bump[/bold cyan] — master: [cyan]{master}[/cyan]")
+    console.print(
+        f"[bold cyan]mgit version bump[/bold cyan] — master: [cyan]{master}[/cyan]"
+    )
 
     # 1. Bump master with uv
     bump_cmd = ["uv", "version", "--bump", level]
@@ -54,6 +56,7 @@ def bump_version(
     pyproject = master_path / "pyproject.toml"
     content = pyproject.read_text(encoding="utf-8")
     import re
+
     match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
     if not match:
         console.print("[red]✗ Could not read new version[/red]")
@@ -96,10 +99,12 @@ def bump_version(
                     cwd=repo,
                 )
         else:
-            table.add_row(repo.name, f"[red]✗ failed[/red]")
+            table.add_row(repo.name, "[red]✗ failed[/red]")
 
     console.print(table)
     if dry_run:
         console.print("[dim]— dry-run complete —[/dim]")
     else:
-        console.print(f"[bold green]✓ Version {new_version} synced across toolbox[/bold green]")
+        console.print(
+            f"[bold green]✓ Version {new_version} synced across toolbox[/bold green]"
+        )

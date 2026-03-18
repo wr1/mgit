@@ -43,7 +43,9 @@ def _ruff_format_single_repo(repo: Path) -> dict:
     logger.info(f"Running 'ruff format' in {repo.name}")
     result = run_command(["ruff", "format"], cwd=repo)
     if result.returncode != 0:
-        logger.error(f"Failed to format in {repo.name}: {result.stdout} {result.stderr}")
+        logger.error(
+            f"Failed to format in {repo.name}: {result.stdout} {result.stderr}"
+        )
         return {"status": "error", "output": result.stderr.strip()}
     logger.info(f"Formatted in {repo.name}")
     return {"status": "ok", "output": (result.stdout + result.stderr).strip()}
@@ -58,8 +60,7 @@ def ruff_fix(root: Path, profile: Optional[str] = None, fmt: str = "rich") -> No
     results: dict[str, dict] = {}
     with ThreadPoolExecutor(max_workers=max(1, len(repo_paths))) as executor:
         future_to_repo = {
-            executor.submit(_ruff_fix_single_repo, repo): repo
-            for repo in repo_paths
+            executor.submit(_ruff_fix_single_repo, repo): repo for repo in repo_paths
         }
         for future in as_completed(future_to_repo):
             repo = future_to_repo[future]

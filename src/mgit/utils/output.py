@@ -1,7 +1,6 @@
 """Shared output formatting for all commands."""
 
 import json
-import sys
 from typing import Any
 
 
@@ -25,7 +24,9 @@ def _to_markdown(data: Any, compact: bool = False) -> str:
     if isinstance(data, dict):
         for k, v in data.items():
             if isinstance(v, list):
-                lines.append(f"**{k}**: {', '.join(str(i) for i in v)}" if compact else f"## {k}")
+                lines.append(
+                    f"**{k}**: {', '.join(str(i) for i in v)}" if compact else f"## {k}"
+                )
                 if not compact:
                     for item in v:
                         lines.append(f"- {item}")

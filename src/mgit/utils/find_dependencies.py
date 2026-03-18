@@ -6,7 +6,6 @@ from typing import Dict, Set
 from .extract_imports import extract_imports
 
 
-
 def find_dependencies(
     files: Set[Path], import_map: Dict[str, str], root: Path
 ) -> Set[str]:

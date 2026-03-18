@@ -35,7 +35,9 @@ def search_repos(
     results: dict[str, list[dict]] = {}
     with ThreadPoolExecutor(max_workers=max(1, len(repo_paths))) as executor:
         future_to_repo = {
-            executor.submit(_search_single_repo, repo, pattern, file_type, case_insensitive): repo
+            executor.submit(
+                _search_single_repo, repo, pattern, file_type, case_insensitive
+            ): repo
             for repo in repo_paths
         }
         for future in as_completed(future_to_repo):
@@ -67,7 +69,9 @@ def search_repos(
         print(f"\n[{repo_name}] — {len(matches)} match(es)")
         for m in matches:
             print(f"  {m['file']}:{m['line']}: {m['text']}")
-    print(f"\nTotal: {total_matches} match(es) across {len([r for r in results if results[r]])} repo(s)")
+    print(
+        f"\nTotal: {total_matches} match(es) across {len([r for r in results if results[r]])} repo(s)"
+    )
 
 
 def _search_single_repo(
@@ -92,7 +96,9 @@ def _search_single_repo(
             # git grep -n output: file:lineno:text
             parts = line.split(":", 2)
             if len(parts) >= 3:
-                matches.append({"file": parts[0], "line": int(parts[1]), "text": parts[2].strip()})
+                matches.append(
+                    {"file": parts[0], "line": int(parts[1]), "text": parts[2].strip()}
+                )
             elif len(parts) == 2:
                 matches.append({"file": parts[0], "line": 0, "text": parts[1].strip()})
     return matches
